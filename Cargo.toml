@@ -1,5 +1,5 @@
 [package]
-name = "srand"
+name = "simplerand"
 version = "0.0.1"
 authors = ["PumpkinSeed <qwer.kocka@gmail.com>"]
 edition = "2018"
