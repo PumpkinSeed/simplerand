@@ -4,18 +4,18 @@ const A: i64 = 1103515245;
 const C: i16 = 12345;
 const M: i32 = 1 << 31;
 
-struct Rng {
+pub struct Rng {
     seed: i64,
 }
 
 impl Rng {
-    fn new() -> Rng {
+    pub fn new() -> Rng {
         Rng {
             seed: SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() as i64,
         }
     }
 
-    fn set_seed(mut self, s: i64) {
+    pub fn set_seed(mut self, s: i64) {
         self.seed = s;
     }
 
