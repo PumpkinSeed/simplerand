@@ -15,8 +15,12 @@ impl Rng {
         }
     }
 
-    pub fn set_seed(mut self, s: i64) {
+    pub fn set_seed(&mut self, s: i64) {
         self.seed = s;
+    }
+
+    pub fn get_seed(self) -> i64 {
+        self.seed
     }
 
     pub fn rand(&mut self) -> i64 {
