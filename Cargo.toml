@@ -1,9 +1,12 @@
 [package]
 name = "srand"
-version = "0.1.0"
+version = "0.0.1"
 authors = ["PumpkinSeed <qwer.kocka@gmail.com>"]
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+description = "Simple and fast random number generator"
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/PumpkinSeed/srand"
+keywords = ["random"]
 
 [dependencies]
