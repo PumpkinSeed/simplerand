@@ -4,6 +4,7 @@ const A: i64 = 1103515245;
 const C: i16 = 12345;
 const M: i32 = 1 << 31;
 
+#[derive(Debug, Copy, Clone)]
 pub struct Rng {
     seed: i64,
 }
