@@ -1,4 +1,5 @@
-# srand
+# simplerand
+
 Simple and fast random number generator
 
 - [Motivation](#motivation)
