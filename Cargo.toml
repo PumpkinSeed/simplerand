@@ -10,3 +10,4 @@ repository = "https://github.com/PumpkinSeed/srand"
 keywords = ["random"]
 
 [dependencies]
+lazy_static = "1.4.0"
