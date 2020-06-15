@@ -1,5 +1,8 @@
 # simplerand
 
+[![Latest Version](https://img.shields.io/crates/v/simplerand.svg)](https://crates.io/crates/simplerand)
+![Minimum rustc version](https://img.shields.io/badge/rustc-1.31.0+-green.svg)
+
 Simple and fast random number generator
 
 - [Motivation](#motivation)
