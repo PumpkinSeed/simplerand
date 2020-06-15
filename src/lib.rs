@@ -45,6 +45,7 @@ impl Rng {
     }
 
     pub fn rand(&mut self) -> i64 {
+        // https://stackoverflow.com/questions/3062746/special-simple-random-number-generator
         self.seed = (A * self.seed + C as i64) % M as i64;
         self.seed
     }
