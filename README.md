@@ -15,7 +15,7 @@ The random number generation is strongly based on the **linear congruential gene
 
 ### Usage
 
-```
+```rust
 extern crate simplerand;
 
 use simplerand::{randn, rand_range};
@@ -31,7 +31,7 @@ fn main() {
 
 ##### Singleton implementation
 
-```
+```rust
 #[macro_use]
 extern crate lazy_static;
 extern crate simplerand;
