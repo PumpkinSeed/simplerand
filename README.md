@@ -29,6 +29,26 @@ fn main() {
 
     let data = rand_range(3000, 10000);
     println!("data: {}", data); // output: something between 3000 and 10000
+
+    let generic_data = rand_range::<f32>(1000.123, 30000.123)
+    println!("data: {}", generic_data);
+}
+```
+
+##### Use Randomable
+
+```rust
+extern crate simplerand;
+
+use simplerand::{Randomable, rand_range};
+
+fn main() {
+    let generic_data = get_random_in_range::<u32>(10, 33);
+    println!("data: {}", generic_data);
+}
+
+fn get_random_in_range<T: Randomable>(min: T, max: T) -> T {
+    rand_range::<T>(min, max)
 }
 ```
 
@@ -46,7 +66,7 @@ lazy_static! {
 }
 
 fn main() {
-    let number = RNG.lock().unwrap().rand_range(0, 10000; // output: something between 0 and 10000
+    let number = RNG.lock().unwrap().rand_range(0, 10000); // output: something between 0 and 10000
 }
 ```
 
