@@ -1,12 +1,12 @@
 #[macro_use]
 extern crate lazy_static;
 
-use std::time::{SystemTime, UNIX_EPOCH};
 use std::sync::Mutex;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 const A: i64 = 1103515245;
 const C: i16 = 12345;
-const M: i32 = 1 << 31;
+const M: u64 = 1 << 63;
 
 pub fn rand<T: Randomable>() -> T {
     T::rand()
@@ -22,38 +22,42 @@ pub fn rand_range<T: Randomable>(min: T, max: T) -> T {
 
 #[derive(Debug, Copy, Clone)]
 pub struct Rng {
-    seed: i64,
+    seed: u128,
 }
 
 impl Rng {
     pub fn new() -> Rng {
         Rng {
-            seed: SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() as i64,
+            seed: SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_nanos() as u128,
         }
     }
 
-    pub fn set_seed(&mut self, s: i64) {
+    pub fn set_seed(&mut self, s: u128) {
         self.seed = s;
     }
 
-    pub fn get_seed(self) -> i64 {
+    pub fn get_seed(self) -> u128 {
         self.seed
     }
 
-    pub fn rand(&mut self) -> i64 {
+    pub fn rand(&mut self) -> u128 {
         // https://stackoverflow.com/questions/3062746/special-simple-random-number-generator
-        self.seed = (A * self.seed + C as i64) % M as i64;
+        self.seed = ((A as u128 * self.seed + C as u128) % M as u128) as u128;
         self.seed
     }
 
-    pub fn randn(&mut self, n: i64) -> i64 {
+    pub fn randn(&mut self, n: u128) -> u128 {
         if n <= 0 {
             panic!("invalid argument, must be bigger than 0")
         }
-        if n&(n-1) == 0 { // n is power of two, can mask
+        if n & (n - 1) == 0 {
+            // n is power of two, can mask
             return self.rand() & (n - 1);
         }
-        let max: i64 = ((1 << 63) - 1 - (1<<63)%n as u64) as i64;
+        let max: u128 = ((1 << 63) - 1 - (1 << 63) % n as u64) as u128;
         let mut v = self.rand();
         while v > max {
             v = self.rand();
@@ -62,8 +66,8 @@ impl Rng {
         v % n
     }
 
-    pub fn rand_range(&mut self, min: i64, max: i64) -> i64 {
-        self.randn(max-min) +min
+    pub fn rand_range(&mut self, min: u128, max: u128) -> u128 {
+        self.randn(max - min) + min
     }
 }
 
@@ -80,177 +84,213 @@ pub trait Randomable {
 impl Randomable for u8 {
     fn rand() -> u8 {
         let range: u8 = 1 << 8 - 1;
-        BASE_RAND.lock().unwrap().rand_range(0, range as i64) as u8
+        BASE_RAND.lock().unwrap().rand_range(0, range as u128) as u8
     }
     fn randn(n: u8) -> u8 {
-        BASE_RAND.lock().unwrap().randn(n as i64) as u8
+        BASE_RAND.lock().unwrap().randn(n as u128) as u8
     }
     fn rand_range(min: u8, max: u8) -> u8 {
-        BASE_RAND.lock().unwrap().rand_range(min as i64, max as i64) as u8
+        BASE_RAND
+            .lock()
+            .unwrap()
+            .rand_range(min as u128, max as u128) as u8
     }
 }
 
 impl Randomable for u16 {
     fn rand() -> u16 {
         let range: u16 = 1 << 16 - 1;
-        BASE_RAND.lock().unwrap().rand_range(0, range as i64) as u16
+        BASE_RAND.lock().unwrap().rand_range(0, range as u128) as u16
     }
     fn randn(n: u16) -> u16 {
-        BASE_RAND.lock().unwrap().randn(n as i64) as u16
+        BASE_RAND.lock().unwrap().randn(n as u128) as u16
     }
     fn rand_range(min: u16, max: u16) -> u16 {
-        BASE_RAND.lock().unwrap().rand_range(min as i64, max as i64) as u16
+        BASE_RAND
+            .lock()
+            .unwrap()
+            .rand_range(min as u128, max as u128) as u16
     }
 }
 
 impl Randomable for u32 {
     fn rand() -> u32 {
         let range: u32 = 1 << 32 - 1;
-        BASE_RAND.lock().unwrap().rand_range(0, range as i64) as u32
+        BASE_RAND.lock().unwrap().rand_range(0, range as u128) as u32
     }
     fn randn(n: u32) -> u32 {
-        BASE_RAND.lock().unwrap().randn(n as i64) as u32
+        BASE_RAND.lock().unwrap().randn(n as u128) as u32
     }
     fn rand_range(min: u32, max: u32) -> u32 {
-        BASE_RAND.lock().unwrap().rand_range(min as i64, max as i64) as u32
+        BASE_RAND
+            .lock()
+            .unwrap()
+            .rand_range(min as u128, max as u128) as u32
     }
 }
 
 impl Randomable for u64 {
     fn rand() -> u64 {
-        let range: i64 = 1 << 63 - 1;
+        let range: u128 = 1 << 63 - 1;
         BASE_RAND.lock().unwrap().rand_range(0, range) as u64
     }
     fn randn(n: u64) -> u64 {
-        BASE_RAND.lock().unwrap().randn(n as i64) as u64
+        BASE_RAND.lock().unwrap().randn(n as u128) as u64
     }
     fn rand_range(min: u64, max: u64) -> u64 {
-        BASE_RAND.lock().unwrap().rand_range(min as i64, max as i64) as u64
+        BASE_RAND
+            .lock()
+            .unwrap()
+            .rand_range(min as u128, max as u128) as u64
     }
 }
 
 impl Randomable for usize {
     fn rand() -> usize {
         let range: u32 = 1 << 32 - 1;
-        BASE_RAND.lock().unwrap().rand_range(0, range as i64) as usize
+        BASE_RAND.lock().unwrap().rand_range(0, range as u128) as usize
     }
     fn randn(n: usize) -> usize {
-        BASE_RAND.lock().unwrap().randn(n as i64) as usize
+        BASE_RAND.lock().unwrap().randn(n as u128) as usize
     }
     fn rand_range(min: usize, max: usize) -> usize {
-        BASE_RAND.lock().unwrap().rand_range(min as i64, max as i64) as usize
+        BASE_RAND
+            .lock()
+            .unwrap()
+            .rand_range(min as u128, max as u128) as usize
     }
 }
 
 impl Randomable for i8 {
     fn rand() -> i8 {
         let range: i8 = 1 << 7 - 1;
-        BASE_RAND.lock().unwrap().rand_range(0, range as i64) as i8
+        BASE_RAND.lock().unwrap().rand_range(0, range as u128) as i8
     }
     fn randn(n: i8) -> i8 {
-        BASE_RAND.lock().unwrap().randn(n as i64) as i8
+        BASE_RAND.lock().unwrap().randn(n as u128) as i8
     }
     fn rand_range(min: i8, max: i8) -> i8 {
-        BASE_RAND.lock().unwrap().rand_range(min as i64, max as i64) as i8
+        BASE_RAND
+            .lock()
+            .unwrap()
+            .rand_range(min as u128, max as u128) as i8
     }
 }
 
 impl Randomable for i16 {
     fn rand() -> i16 {
         let range: i16 = 1 << 15 - 1;
-        BASE_RAND.lock().unwrap().rand_range(0, range as i64) as i16
+        BASE_RAND.lock().unwrap().rand_range(0, range as u128) as i16
     }
     fn randn(n: i16) -> i16 {
-        BASE_RAND.lock().unwrap().randn(n as i64) as i16
+        BASE_RAND.lock().unwrap().randn(n as u128) as i16
     }
     fn rand_range(min: i16, max: i16) -> i16 {
-        BASE_RAND.lock().unwrap().rand_range(min as i64, max as i64) as i16
+        BASE_RAND
+            .lock()
+            .unwrap()
+            .rand_range(min as u128, max as u128) as i16
     }
 }
 
 impl Randomable for i32 {
     fn rand() -> i32 {
         let range: i32 = 1 << 31 - 1;
-        BASE_RAND.lock().unwrap().rand_range(0, range as i64) as i32
+        BASE_RAND.lock().unwrap().rand_range(0, range as u128) as i32
     }
     fn randn(n: i32) -> i32 {
-        BASE_RAND.lock().unwrap().randn(n as i64) as i32
+        BASE_RAND.lock().unwrap().randn(n as u128) as i32
     }
     fn rand_range(min: i32, max: i32) -> i32 {
-        BASE_RAND.lock().unwrap().rand_range(min as i64, max as i64) as i32
+        BASE_RAND
+            .lock()
+            .unwrap()
+            .rand_range(min as u128, max as u128) as i32
     }
 }
 
 impl Randomable for i64 {
     fn rand() -> i64 {
         let range: i64 = 1 << 63 - 1;
-        BASE_RAND.lock().unwrap().rand_range(0, range as i64) as i64
+        BASE_RAND.lock().unwrap().rand_range(0, range as u128) as i64
     }
     fn randn(n: i64) -> i64 {
-        BASE_RAND.lock().unwrap().randn(n as i64) as i64
+        BASE_RAND.lock().unwrap().randn(n as u128) as i64
     }
     fn rand_range(min: i64, max: i64) -> i64 {
-        BASE_RAND.lock().unwrap().rand_range(min as i64, max as i64) as i64
+        BASE_RAND
+            .lock()
+            .unwrap()
+            .rand_range(min as u128, max as u128) as i64
     }
 }
 
 impl Randomable for isize {
     fn rand() -> isize {
         let range: i32 = 1 << 31 - 1;
-        BASE_RAND.lock().unwrap().rand_range(0, range as i64) as isize
+        BASE_RAND.lock().unwrap().rand_range(0, range as u128) as isize
     }
     fn randn(n: isize) -> isize {
-        BASE_RAND.lock().unwrap().randn(n as i64) as isize
+        BASE_RAND.lock().unwrap().randn(n as u128) as isize
     }
     fn rand_range(min: isize, max: isize) -> isize {
-        BASE_RAND.lock().unwrap().rand_range(min as i64, max as i64) as isize
+        BASE_RAND
+            .lock()
+            .unwrap()
+            .rand_range(min as u128, max as u128) as isize
     }
 }
 
 impl Randomable for f32 {
     fn rand() -> f32 {
         let range: i32 = 1 << 31 - 1;
-        let num = BASE_RAND.lock().unwrap().rand_range(10000, range as i64);
-        let divider = BASE_RAND.lock().unwrap().rand_range(10, 1000);
+        let num = BASE_RAND.lock().unwrap().rand_range(10000, range as u128);
+        let divider = BASE_RAND.lock().unwrap().rand_range(2, 9);
         num as f32 / divider as f32
     }
     fn randn(n: f32) -> f32 {
-        let divider = 999 as u64;
-        let range = n as i64 * 999;
-        
-        let num = BASE_RAND.lock().unwrap().rand_range(0, range);
+        let divider = 29 as u128;
+        let range = n as u128 * divider;
+
+        let num = BASE_RAND.lock().unwrap().randn(range);
         num as f32 / divider as f32
     }
     fn rand_range(min: f32, max: f32) -> f32 {
-        let num = BASE_RAND.lock().unwrap().rand_range(min as i64, max as i64);
-        num as f32 / 9.9
+        let num = BASE_RAND
+            .lock()
+            .unwrap()
+            .rand_range(min as u128, max as u128);
+        num as f32 / 1.16453434
     }
 }
 
 impl Randomable for f64 {
     fn rand() -> f64 {
         let range: i64 = 1 << 63 - 1;
-        let num = BASE_RAND.lock().unwrap().rand_range(10000, range as i64);
-        let divider = BASE_RAND.lock().unwrap().rand_range(10, 1000);
+        let num = BASE_RAND.lock().unwrap().rand_range(10000, range as u128);
+        let divider = BASE_RAND.lock().unwrap().rand_range(2, 9);
         num as f64 / divider as f64
     }
     fn randn(n: f64) -> f64 {
-        let divider = 999 as u64;
-        let range = n as i64 * 999;
-        
-        let num = BASE_RAND.lock().unwrap().rand_range(0, range);
+        let divider = 29 as u128;
+        let range = n as u128 * divider;
+
+        let num = BASE_RAND.lock().unwrap().randn(range);
         num as f64 / divider as f64
     }
     fn rand_range(min: f64, max: f64) -> f64 {
-        let num = BASE_RAND.lock().unwrap().rand_range(min as i64, max as i64);
-        num as f64 / 9.9
+        let num = BASE_RAND
+            .lock()
+            .unwrap()
+            .rand_range(min as u128, max as u128);
+        num as f64 / 1.16453434
     }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::*;
-    use std::time::{Instant};
+    use std::time::Instant;
 
     #[test]
     fn base_rand() {
@@ -303,10 +343,230 @@ mod tests {
                 panic!("{} shouldn't be equal with {}", prev_data, data)
             }
             prev_data = data
-        }   
-        
-        let now = Instant::now();    
+        }
+
+        let now = Instant::now();
         let data = randn(10000);
-        println!("Time taken to generate a random number ({}): {:.2?}", data, now.elapsed());
+        println!(
+            "Time taken to generate a random number ({}): {:.2?}",
+            data,
+            now.elapsed()
+        );
+    }
+
+    #[test]
+    fn random_u8() {
+        let min = 10;
+        let max = 30;
+        let n1 = rand_range::<u8>(min, max);
+        let n2 = rand_range::<u8>(min, max);
+
+        if n1 == n2 {
+            panic!("{} shouldn't be equal with {}", n1, n2)
+        }
+        if n1 > max && n1 < min {
+            panic!("{} should be between {} and {}", n1, min, max)
+        }
+        if n2 > max && n2 < min {
+            panic!("{} should be between {} and {}", n2, min, max)
+        }
+    }
+
+    #[test]
+    fn random_u16() {
+        let min = 10;
+        let max = 30000;
+        let n1 = rand_range::<u16>(min, max);
+        let n2 = rand_range::<u16>(min, max);
+
+        if n1 == n2 {
+            panic!("{} shouldn't be equal with {}", n1, n2)
+        }
+        if n1 > max && n1 < min {
+            panic!("{} should be between {} and {}", n1, min, max)
+        }
+        if n2 > max && n2 < min {
+            panic!("{} should be between {} and {}", n2, min, max)
+        }
+    }
+
+    #[test]
+    fn random_u32() {
+        let min = 10;
+        let max = 3000000000;
+        let n1 = rand_range::<u32>(min, max);
+        let n2 = rand_range::<u32>(min, max);
+
+        if n1 == n2 {
+            panic!("{} shouldn't be equal with {}", n1, n2)
+        }
+        if n1 > max && n1 < min {
+            panic!("{} should be between {} and {}", n1, min, max)
+        }
+        if n2 > max && n2 < min {
+            panic!("{} should be between {} and {}", n2, min, max)
+        }
+    }
+
+    #[test]
+    fn random_u64() {
+        let min = 10;
+        let max = 3000000000000000000;
+        let n1 = rand_range::<u64>(min, max);
+        let n2 = rand_range::<u64>(min, max);
+
+        if n1 == n2 {
+            panic!("{} shouldn't be equal with {}", n1, n2)
+        }
+        if n1 > max && n1 < min {
+            panic!("{} should be between {} and {}", n1, min, max)
+        }
+        if n2 > max && n2 < min {
+            panic!("{} should be between {} and {}", n2, min, max)
+        }
+    }
+
+    #[test]
+    fn random_usize() {
+        let min = 10;
+        let max = 304444;
+        let n1 = rand_range::<usize>(min, max);
+        let n2 = rand_range::<usize>(min, max);
+
+        if n1 == n2 {
+            panic!("{} shouldn't be equal with {}", n1, n2)
+        }
+        if n1 > max && n1 < min {
+            panic!("{} should be between {} and {}", n1, min, max)
+        }
+        if n2 > max && n2 < min {
+            panic!("{} should be between {} and {}", n2, min, max)
+        }
+    }
+
+    #[test]
+    fn random_i8() {
+        let min = 10;
+        let max = 30;
+        let n1 = rand_range::<i8>(min, max);
+        let n2 = rand_range::<i8>(min, max);
+
+        if n1 == n2 {
+            panic!("{} shouldn't be equal with {}", n1, n2)
+        }
+        if n1 > max && n1 < min {
+            panic!("{} should be between {} and {}", n1, min, max)
+        }
+        if n2 > max && n2 < min {
+            panic!("{} should be between {} and {}", n2, min, max)
+        }
+    }
+
+    #[test]
+    fn random_i16() {
+        let min = 10;
+        let max = 30000;
+        let n1 = rand_range::<i16>(min, max);
+        let n2 = rand_range::<i16>(min, max);
+
+        if n1 == n2 {
+            panic!("{} shouldn't be equal with {}", n1, n2)
+        }
+        if n1 > max && n1 < min {
+            panic!("{} should be between {} and {}", n1, min, max)
+        }
+        if n2 > max && n2 < min {
+            panic!("{} should be between {} and {}", n2, min, max)
+        }
+    }
+
+    #[test]
+    fn random_i32() {
+        let min = 10;
+        let max = 300000000;
+        let n1 = rand_range::<i32>(min, max);
+        let n2 = rand_range::<i32>(min, max);
+
+        if n1 == n2 {
+            panic!("{} shouldn't be equal with {}", n1, n2)
+        }
+        if n1 > max && n1 < min {
+            panic!("{} should be between {} and {}", n1, min, max)
+        }
+        if n2 > max && n2 < min {
+            panic!("{} should be between {} and {}", n2, min, max)
+        }
+    }
+
+    #[test]
+    fn random_i64() {
+        let min = 10;
+        let max = 3000000000000000000;
+        let n1 = rand_range::<i64>(min, max);
+        let n2 = rand_range::<i64>(min, max);
+
+        if n1 == n2 {
+            panic!("{} shouldn't be equal with {}", n1, n2)
+        }
+        if n1 > max && n1 < min {
+            panic!("{} should be between {} and {}", n1, min, max)
+        }
+        if n2 > max && n2 < min {
+            panic!("{} should be between {} and {}", n2, min, max)
+        }
+    }
+
+    #[test]
+    fn random_isize() {
+        let min = 10;
+        let max = 304444;
+        let n1 = rand_range::<isize>(min, max);
+        let n2 = rand_range::<isize>(min, max);
+
+        if n1 == n2 {
+            panic!("{} shouldn't be equal with {}", n1, n2)
+        }
+        if n1 > max && n1 < min {
+            panic!("{} should be between {} and {}", n1, min, max)
+        }
+        if n2 > max && n2 < min {
+            panic!("{} should be between {} and {}", n2, min, max)
+        }
+    }
+
+    #[test]
+    fn random_f32() {
+        let min = 10.1;
+        let max = 30000.1;
+        let n1 = rand_range::<f32>(min, max);
+        let n2 = rand_range::<f32>(min, max);
+
+        if n1 == n2 {
+            panic!("{} shouldn't be equal with {}", n1, n2)
+        }
+        if n1 > max && n1 < min {
+            panic!("{} should be between {} and {}", n1, min, max)
+        }
+        if n2 > max && n2 < min {
+            panic!("{} should be between {} and {}", n2, min, max)
+        }
+    }
+
+    #[test]
+    fn random_f64() {
+        let min = 10.1;
+        let max = 30000000000.1;
+        let n1 = rand_range::<f64>(min, max);
+        let n2 = rand_range::<f64>(min, max);
+
+        if n1 == n2 {
+            panic!("{} shouldn't be equal with {}", n1, n2)
+        }
+        if n1 > max && n1 < min {
+            panic!("{} should be between {} and {}", n1, min, max)
+        }
+        if n2 > max && n2 < min {
+            panic!("{} should be between {} and {}", n2, min, max)
+        }
     }
 }
