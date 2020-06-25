@@ -173,7 +173,7 @@ impl Randomable for i8 {
         BASE_RAND
             .lock()
             .unwrap()
-            .rand_range(min as u128, max as u128) as i8
+            .rand_range(0u128, (max - min) as u128) as i8 + min
     }
 }
 
@@ -189,7 +189,7 @@ impl Randomable for i16 {
         BASE_RAND
             .lock()
             .unwrap()
-            .rand_range(min as u128, max as u128) as i16
+            .rand_range(0u128, (max - min) as u128) as i16 + min
     }
 }
 
@@ -205,7 +205,7 @@ impl Randomable for i32 {
         BASE_RAND
             .lock()
             .unwrap()
-            .rand_range(min as u128, max as u128) as i32
+            .rand_range(0u128, (max - min) as u128) as i32 + min
     }
 }
 
@@ -221,7 +221,7 @@ impl Randomable for i64 {
         BASE_RAND
             .lock()
             .unwrap()
-            .rand_range(min as u128, max as u128) as i64
+            .rand_range(0u128, (max - min) as u128) as i64 + min
     }
 }
 
@@ -237,7 +237,7 @@ impl Randomable for isize {
         BASE_RAND
             .lock()
             .unwrap()
-            .rand_range(min as u128, max as u128) as isize
+            .rand_range(0u128, (max - min) as u128) as isize + min
     }
 }
 
@@ -259,8 +259,8 @@ impl Randomable for f32 {
         let num = BASE_RAND
             .lock()
             .unwrap()
-            .rand_range(min as u128, max as u128);
-        num as f32 / 1.16453434
+            .rand_range(0u128, (max - min) as u128);
+        (num as f32 + min) / 1.16453434
     }
 }
 
@@ -282,8 +282,8 @@ impl Randomable for f64 {
         let num = BASE_RAND
             .lock()
             .unwrap()
-            .rand_range(min as u128, max as u128);
-        num as f64 / 1.16453434
+            .rand_range(0u128, (max - min) as u128);
+        (num as f64 + min) / 1.16453434
     }
 }
 
@@ -461,7 +461,6 @@ mod tests {
             panic!("{} should be between {} and {}", n2, min, max)
         }
     }
-
     #[test]
     fn random_i16() {
         let min = 10;
@@ -556,6 +555,258 @@ mod tests {
     fn random_f64() {
         let min = 10.1;
         let max = 30000000000.1;
+        let n1 = rand_range::<f64>(min, max);
+        let n2 = rand_range::<f64>(min, max);
+
+        if n1 == n2 {
+            panic!("{} shouldn't be equal with {}", n1, n2)
+        }
+        if n1 > max && n1 < min {
+            panic!("{} should be between {} and {}", n1, min, max)
+        }
+        if n2 > max && n2 < min {
+            panic!("{} should be between {} and {}", n2, min, max)
+        }
+    }
+
+    #[test]
+    fn random_i8_negative_min() {
+        let min = -6;
+        let max = 30;
+        let n1 = rand_range::<i8>(min, max);
+        let n2 = rand_range::<i8>(min, max);
+
+        if n1 == n2 {
+            panic!("{} shouldn't be equal with {}", n1, n2)
+        }
+        if n1 > max && n1 < min {
+            panic!("{} should be between {} and {}", n1, min, max)
+        }
+        if n2 > max && n2 < min {
+            panic!("{} should be between {} and {}", n2, min, max)
+        }
+    }
+
+    #[test]
+    fn random_i16_negative_min() {
+        let min = -6;
+        let max = 30;
+        let n1 = rand_range::<i16>(min, max);
+        let n2 = rand_range::<i16>(min, max);
+
+        if n1 == n2 {
+            panic!("{} shouldn't be equal with {}", n1, n2)
+        }
+        if n1 > max && n1 < min {
+            panic!("{} should be between {} and {}", n1, min, max)
+        }
+        if n2 > max && n2 < min {
+            panic!("{} should be between {} and {}", n2, min, max)
+        }
+    }
+
+    #[test]
+    fn random_i32_negative_min() {
+        let min = -6;
+        let max = 30;
+        let n1 = rand_range::<i32>(min, max);
+        let n2 = rand_range::<i32>(min, max);
+
+        if n1 == n2 {
+            panic!("{} shouldn't be equal with {}", n1, n2)
+        }
+        if n1 > max && n1 < min {
+            panic!("{} should be between {} and {}", n1, min, max)
+        }
+        if n2 > max && n2 < min {
+            panic!("{} should be between {} and {}", n2, min, max)
+        }
+    }
+
+    #[test]
+    fn random_i64_negative_min() {
+        let min = -6;
+        let max = 30;
+        let n1 = rand_range::<i64>(min, max);
+        let n2 = rand_range::<i64>(min, max);
+
+        if n1 == n2 {
+            panic!("{} shouldn't be equal with {}", n1, n2)
+        }
+        if n1 > max && n1 < min {
+            panic!("{} should be between {} and {}", n1, min, max)
+        }
+        if n2 > max && n2 < min {
+            panic!("{} should be between {} and {}", n2, min, max)
+        }
+    }
+
+    #[test]
+    fn random_isize_negative_min() {
+        let min = -6;
+        let max = 30;
+        let n1 = rand_range::<isize>(min, max);
+        let n2 = rand_range::<isize>(min, max);
+
+        if n1 == n2 {
+            panic!("{} shouldn't be equal with {}", n1, n2)
+        }
+        if n1 > max && n1 < min {
+            panic!("{} should be between {} and {}", n1, min, max)
+        }
+        if n2 > max && n2 < min {
+            panic!("{} should be between {} and {}", n2, min, max)
+        }
+    }
+
+    #[test]
+    fn random_i8_negative_range() {
+        let min = -30;
+        let max = -6;
+        let n1 = rand_range::<i8>(min, max);
+        let n2 = rand_range::<i8>(min, max);
+
+        if n1 == n2 {
+            panic!("{} shouldn't be equal with {}", n1, n2)
+        }
+        if n1 > max && n1 < min {
+            panic!("{} should be between {} and {}", n1, min, max)
+        }
+        if n2 > max && n2 < min {
+            panic!("{} should be between {} and {}", n2, min, max)
+        }
+    }
+
+    #[test]
+    fn random_i16_negative_range() {
+       let min = -30;
+        let max = -6;
+        let n1 = rand_range::<i16>(min, max);
+        let n2 = rand_range::<i16>(min, max);
+
+        if n1 == n2 {
+            panic!("{} shouldn't be equal with {}", n1, n2)
+        }
+        if n1 > max && n1 < min {
+            panic!("{} should be between {} and {}", n1, min, max)
+        }
+        if n2 > max && n2 < min {
+            panic!("{} should be between {} and {}", n2, min, max)
+        }
+    }
+
+    #[test]
+    fn random_i32_negative_range() {
+       let min = -30;
+        let max = -6;
+        let n1 = rand_range::<i32>(min, max);
+        let n2 = rand_range::<i32>(min, max);
+
+        if n1 == n2 {
+            panic!("{} shouldn't be equal with {}", n1, n2)
+        }
+        if n1 > max && n1 < min {
+            panic!("{} should be between {} and {}", n1, min, max)
+        }
+        if n2 > max && n2 < min {
+            panic!("{} should be between {} and {}", n2, min, max)
+        }
+    }
+
+    #[test]
+    fn random_i64_negative_range() {
+       let min = -30;
+        let max = -6;
+        let n1 = rand_range::<i64>(min, max);
+        let n2 = rand_range::<i64>(min, max);
+
+        if n1 == n2 {
+            panic!("{} shouldn't be equal with {}", n1, n2)
+        }
+        if n1 > max && n1 < min {
+            panic!("{} should be between {} and {}", n1, min, max)
+        }
+        if n2 > max && n2 < min {
+            panic!("{} should be between {} and {}", n2, min, max)
+        }
+    }
+
+    #[test]
+    fn random_isize_negative_range() {
+       let min = -30;
+        let max = -6;
+        let n1 = rand_range::<isize>(min, max);
+        let n2 = rand_range::<isize>(min, max);
+
+        if n1 == n2 {
+            panic!("{} shouldn't be equal with {}", n1, n2)
+        }
+        if n1 > max && n1 < min {
+            panic!("{} should be between {} and {}", n1, min, max)
+        }
+        if n2 > max && n2 < min {
+            panic!("{} should be between {} and {}", n2, min, max)
+        }
+    }
+
+    #[test]
+    fn random_f32_negative_min() {
+        let min = -10.1;
+        let max = 30000.1;
+        let n1 = rand_range::<f32>(min, max);
+        let n2 = rand_range::<f32>(min, max);
+
+        if n1 == n2 {
+            panic!("{} shouldn't be equal with {}", n1, n2)
+        }
+        if n1 > max && n1 < min {
+            panic!("{} should be between {} and {}", n1, min, max)
+        }
+        if n2 > max && n2 < min {
+            panic!("{} should be between {} and {}", n2, min, max)
+        }
+    }
+
+    #[test]
+    fn random_f64_negative_min() {
+        let min = -10.1;
+        let max = 30000.1;
+        let n1 = rand_range::<f64>(min, max);
+        let n2 = rand_range::<f64>(min, max);
+
+        if n1 == n2 {
+            panic!("{} shouldn't be equal with {}", n1, n2)
+        }
+        if n1 > max && n1 < min {
+            panic!("{} should be between {} and {}", n1, min, max)
+        }
+        if n2 > max && n2 < min {
+            panic!("{} should be between {} and {}", n2, min, max)
+        }
+    }
+
+    #[test]
+    fn random_f32_negative_range() {
+        let min = -30000.1;
+        let max = -10.1;
+        let n1 = rand_range::<f32>(min, max);
+        let n2 = rand_range::<f32>(min, max);
+
+        if n1 == n2 {
+            panic!("{} shouldn't be equal with {}", n1, n2)
+        }
+        if n1 > max && n1 < min {
+            panic!("{} should be between {} and {}", n1, min, max)
+        }
+        if n2 > max && n2 < min {
+            panic!("{} should be between {} and {}", n2, min, max)
+        }
+    }
+
+    #[test]
+    fn random_f64_negative_range() {
+        let min = -30000.1;
+        let max = -10.1;
         let n1 = rand_range::<f64>(min, max);
         let n2 = rand_range::<f64>(min, max);
 
