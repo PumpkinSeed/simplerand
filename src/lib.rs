@@ -1,12 +1,9 @@
+mod base;
+
 #[macro_use]
 extern crate lazy_static;
 
 use std::sync::Mutex;
-use std::time::{SystemTime, UNIX_EPOCH};
-
-const A: i64 = 1103515245;
-const C: i16 = 12345;
-const M: u64 = 1 << 63;
 
 pub fn rand<T: Randomable>() -> T {
     T::rand()
@@ -20,54 +17,40 @@ pub fn rand_range<T: Randomable>(min: T, max: T) -> T {
     T::rand_range(min, max)
 }
 
+pub fn set_seed<T: Randomable>(s: u128) {
+    T::set_seed(s)
+}
+
 #[derive(Debug, Copy, Clone)]
 pub struct Rng {
-    seed: u128,
+    base: base::Rng,
 }
 
 impl Rng {
     pub fn new() -> Rng {
         Rng {
-            seed: SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .unwrap()
-                .as_nanos() as u128,
+            base: base::Rng::new(),
         }
     }
 
     pub fn set_seed(&mut self, s: u128) {
-        self.seed = s;
+        self.base.set_seed(s)
     }
 
     pub fn get_seed(self) -> u128 {
-        self.seed
+        self.base.get_seed()
     }
 
     pub fn rand(&mut self) -> u128 {
-        // https://stackoverflow.com/questions/3062746/special-simple-random-number-generator
-        self.seed = ((A as u128 * self.seed + C as u128) % M as u128) as u128;
-        self.seed
+        self.base.rand()
     }
 
     pub fn randn(&mut self, n: u128) -> u128 {
-        if n <= 0 {
-            panic!("invalid argument, must be bigger than 0")
-        }
-        if n & (n - 1) == 0 {
-            // n is power of two, can mask
-            return self.rand() & (n - 1);
-        }
-        let max: u128 = ((1 << 63) - 1 - (1 << 63) % n as u64) as u128;
-        let mut v = self.rand();
-        while v > max {
-            v = self.rand();
-        }
-
-        v % n
+        self.base.randn(n)
     }
 
     pub fn rand_range(&mut self, min: u128, max: u128) -> u128 {
-        self.randn(max - min) + min
+        self.base.rand_range(min, max)
     }
 }
 
@@ -75,10 +58,47 @@ lazy_static! {
     static ref BASE_RAND: Mutex<Rng> = Mutex::new(Rng::new());
 }
 
-pub trait Randomable {
+pub struct Random {
+    rng: Mutex<base::Rng>,
+}
+
+impl Random {
+    pub fn new(s: u128) -> Random {
+        let mut rng = base::Rng::new();
+        rng.set_seed(s);
+        Random {
+            rng: Mutex::new(rng),
+        }
+    }
+
+    pub fn rand<T: base::Randomable>(&self) -> T {
+        let mut rng = self.rng.lock().unwrap();
+        T::rand(&mut rng)
+    }
+
+    pub fn randn<T: base::Randomable>(&self, n: T) -> T {
+        let mut rng = self.rng.lock().unwrap();
+        T::randn(&mut rng, n)
+    }
+
+    pub fn rand_range<T: base::Randomable>(&self, min: T, max: T) -> T {
+        let mut rng = self.rng.lock().unwrap();
+        T::rand_range(&mut rng, min, max)
+    }
+
+    pub fn set_seed(&self, s: u128) {
+        self.rng.lock().unwrap().set_seed(s);
+    }
+}
+
+pub trait Randomable: Sized {
     fn rand() -> Self;
     fn randn(n: Self) -> Self;
     fn rand_range(min: Self, max: Self) -> Self;
+
+    fn set_seed(s: u128) {
+        BASE_RAND.lock().unwrap().set_seed(s);
+    }
 }
 
 impl Randomable for u8 {
@@ -154,10 +174,7 @@ impl Randomable for u128 {
         BASE_RAND.lock().unwrap().randn(n)
     }
     fn rand_range(min: u128, max: u128) -> u128 {
-        BASE_RAND
-            .lock()
-            .unwrap()
-            .rand_range(min, max)
+        BASE_RAND.lock().unwrap().rand_range(min, max)
     }
 }
 
@@ -189,7 +206,8 @@ impl Randomable for i8 {
         BASE_RAND
             .lock()
             .unwrap()
-            .rand_range(0u128, (max - min) as u128) as i8 + min
+            .rand_range(0u128, (max - min) as u128) as i8
+            + min
     }
 }
 
@@ -205,7 +223,8 @@ impl Randomable for i16 {
         BASE_RAND
             .lock()
             .unwrap()
-            .rand_range(0u128, (max - min) as u128) as i16 + min
+            .rand_range(0u128, (max - min) as u128) as i16
+            + min
     }
 }
 
@@ -221,7 +240,8 @@ impl Randomable for i32 {
         BASE_RAND
             .lock()
             .unwrap()
-            .rand_range(0u128, (max - min) as u128) as i32 + min
+            .rand_range(0u128, (max - min) as u128) as i32
+            + min
     }
 }
 
@@ -237,7 +257,8 @@ impl Randomable for i64 {
         BASE_RAND
             .lock()
             .unwrap()
-            .rand_range(0u128, (max - min) as u128) as i64 + min
+            .rand_range(0u128, (max - min) as u128) as i64
+            + min
     }
 }
 
@@ -269,7 +290,8 @@ impl Randomable for isize {
         BASE_RAND
             .lock()
             .unwrap()
-            .rand_range(0u128, (max - min) as u128) as isize + min
+            .rand_range(0u128, (max - min) as u128) as isize
+            + min
     }
 }
 
@@ -711,7 +733,7 @@ mod tests {
 
     #[test]
     fn random_i16_negative_range() {
-       let min = -30;
+        let min = -30;
         let max = -6;
         let n1 = rand_range::<i16>(min, max);
         let n2 = rand_range::<i16>(min, max);
@@ -729,7 +751,7 @@ mod tests {
 
     #[test]
     fn random_i32_negative_range() {
-       let min = -30;
+        let min = -30;
         let max = -6;
         let n1 = rand_range::<i32>(min, max);
         let n2 = rand_range::<i32>(min, max);
@@ -747,7 +769,7 @@ mod tests {
 
     #[test]
     fn random_i64_negative_range() {
-       let min = -30;
+        let min = -30;
         let max = -6;
         let n1 = rand_range::<i64>(min, max);
         let n2 = rand_range::<i64>(min, max);
@@ -765,7 +787,7 @@ mod tests {
 
     #[test]
     fn random_isize_negative_range() {
-       let min = -30;
+        let min = -30;
         let max = -6;
         let n1 = rand_range::<isize>(min, max);
         let n2 = rand_range::<isize>(min, max);
@@ -851,5 +873,12 @@ mod tests {
         if n2 > max && n2 < min {
             panic!("{} should be between {} and {}", n2, min, max)
         }
+    }
+
+    #[test]
+    fn random_instance() {
+        let random = Random::new(1);
+        let result: u16 = random.rand_range(6, 123);
+        assert_eq!(result, 93);
     }
 }
