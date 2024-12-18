@@ -9,6 +9,12 @@ pub struct Rng {
     seed: u128,
 }
 
+impl Default for Rng {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Rng {
     pub fn new() -> Rng {
         Rng {
@@ -29,12 +35,12 @@ impl Rng {
 
     pub fn rand(&mut self) -> u128 {
         // https://stackoverflow.com/questions/3062746/special-simple-random-number-generator
-        self.seed = ((A as u128 * self.seed + C as u128) % M as u128) as u128;
+        self.seed = (A as u128 * self.seed + C as u128) % M as u128;
         self.seed
     }
 
     pub fn randn(&mut self, n: u128) -> u128 {
-        if n <= 0 {
+        if n == 0 {
             panic!("invalid argument, must be bigger than 0");
         }
 
@@ -385,7 +391,10 @@ mod tests {
         let mut rng = Rng::new();
         rng.set_seed(1);
         let value = usize::rand(&mut rng);
-        assert_eq!(value, 1103527590, "usize::rand() generated a negative value");
+        assert_eq!(
+            value, 1103527590,
+            "usize::rand() generated a negative value"
+        );
 
         test_random_range(&mut rng, 5usize, 25usize);
         test_randomn(&mut rng, 15usize);

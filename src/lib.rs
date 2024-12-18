@@ -26,6 +26,12 @@ pub struct Rng {
     base: base::Rng,
 }
 
+impl Default for Rng {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Rng {
     pub fn new() -> Rng {
         Rng {
@@ -103,8 +109,8 @@ pub trait Randomable: Sized {
 
 impl Randomable for u8 {
     fn rand() -> u8 {
-        let range: u8 = 1 << 8 - 1;
-        BASE_RAND.lock().unwrap().rand_range(0, range as u128) as u8
+        let range: u128 = (1 << 8) - 1;
+        BASE_RAND.lock().unwrap().rand_range(0, range) as u8
     }
     fn randn(n: u8) -> u8 {
         BASE_RAND.lock().unwrap().randn(n as u128) as u8
@@ -119,8 +125,8 @@ impl Randomable for u8 {
 
 impl Randomable for u16 {
     fn rand() -> u16 {
-        let range: u16 = 1 << 16 - 1;
-        BASE_RAND.lock().unwrap().rand_range(0, range as u128) as u16
+        let range: u128 = (1 << 16) - 1;
+        BASE_RAND.lock().unwrap().rand_range(0, range) as u16
     }
     fn randn(n: u16) -> u16 {
         BASE_RAND.lock().unwrap().randn(n as u128) as u16
@@ -135,8 +141,8 @@ impl Randomable for u16 {
 
 impl Randomable for u32 {
     fn rand() -> u32 {
-        let range: u32 = 1 << 32 - 1;
-        BASE_RAND.lock().unwrap().rand_range(0, range as u128) as u32
+        let range: u128 = (1 << 32) - 1;
+        BASE_RAND.lock().unwrap().rand_range(0, range) as u32
     }
     fn randn(n: u32) -> u32 {
         BASE_RAND.lock().unwrap().randn(n as u128) as u32
@@ -151,7 +157,7 @@ impl Randomable for u32 {
 
 impl Randomable for u64 {
     fn rand() -> u64 {
-        let range: u128 = 1 << 63 - 1;
+        let range: u128 = (1 << 63) - 1;
         BASE_RAND.lock().unwrap().rand_range(0, range) as u64
     }
     fn randn(n: u64) -> u64 {
@@ -167,8 +173,8 @@ impl Randomable for u64 {
 
 impl Randomable for u128 {
     fn rand() -> u128 {
-        let range: u32 = 1 << 32 - 1;
-        BASE_RAND.lock().unwrap().rand_range(0, range as u128)
+        let range: u128 = (1 << 127) - 1;
+        BASE_RAND.lock().unwrap().rand_range(0, range)
     }
     fn randn(n: u128) -> u128 {
         BASE_RAND.lock().unwrap().randn(n)
@@ -180,8 +186,8 @@ impl Randomable for u128 {
 
 impl Randomable for usize {
     fn rand() -> usize {
-        let range: u32 = 1 << 32 - 1;
-        BASE_RAND.lock().unwrap().rand_range(0, range as u128) as usize
+        let range: u128 = (1 << 32) - 1;
+        BASE_RAND.lock().unwrap().rand_range(0, range) as usize
     }
     fn randn(n: usize) -> usize {
         BASE_RAND.lock().unwrap().randn(n as u128) as usize
@@ -196,8 +202,8 @@ impl Randomable for usize {
 
 impl Randomable for i8 {
     fn rand() -> i8 {
-        let range: i8 = 1 << 7 - 1;
-        BASE_RAND.lock().unwrap().rand_range(0, range as u128) as i8
+        let range: u128 = (1 << 7) - 1;
+        BASE_RAND.lock().unwrap().rand_range(0, range) as i8
     }
     fn randn(n: i8) -> i8 {
         BASE_RAND.lock().unwrap().randn(n as u128) as i8
@@ -213,8 +219,8 @@ impl Randomable for i8 {
 
 impl Randomable for i16 {
     fn rand() -> i16 {
-        let range: i16 = 1 << 15 - 1;
-        BASE_RAND.lock().unwrap().rand_range(0, range as u128) as i16
+        let range: u128 = (1 << 15) - 1;
+        BASE_RAND.lock().unwrap().rand_range(0, range) as i16
     }
     fn randn(n: i16) -> i16 {
         BASE_RAND.lock().unwrap().randn(n as u128) as i16
@@ -230,8 +236,8 @@ impl Randomable for i16 {
 
 impl Randomable for i32 {
     fn rand() -> i32 {
-        let range: i32 = 1 << 31 - 1;
-        BASE_RAND.lock().unwrap().rand_range(0, range as u128) as i32
+        let range: u128 = (1 << 31) - 1;
+        BASE_RAND.lock().unwrap().rand_range(0, range) as i32
     }
     fn randn(n: i32) -> i32 {
         BASE_RAND.lock().unwrap().randn(n as u128) as i32
@@ -247,8 +253,8 @@ impl Randomable for i32 {
 
 impl Randomable for i64 {
     fn rand() -> i64 {
-        let range: i64 = 1 << 63 - 1;
-        BASE_RAND.lock().unwrap().rand_range(0, range as u128) as i64
+        let range: u128 = (1 << 63) - 1;
+        BASE_RAND.lock().unwrap().rand_range(0, range) as i64
     }
     fn randn(n: i64) -> i64 {
         BASE_RAND.lock().unwrap().randn(n as u128) as i64
@@ -264,8 +270,8 @@ impl Randomable for i64 {
 
 impl Randomable for i128 {
     fn rand() -> i128 {
-        let range: u32 = 1 << 32 - 1;
-        BASE_RAND.lock().unwrap().rand_range(0, range as u128) as i128
+        let range: u128 = (1 << 127) - 1;
+        BASE_RAND.lock().unwrap().rand_range(0, range) as i128
     }
     fn randn(n: i128) -> i128 {
         BASE_RAND.lock().unwrap().randn(n as u128) as i128
@@ -280,8 +286,8 @@ impl Randomable for i128 {
 
 impl Randomable for isize {
     fn rand() -> isize {
-        let range: i32 = 1 << 31 - 1;
-        BASE_RAND.lock().unwrap().rand_range(0, range as u128) as isize
+        let range: u128 = (1 << 31) - 1;
+        BASE_RAND.lock().unwrap().rand_range(0, range) as isize
     }
     fn randn(n: isize) -> isize {
         BASE_RAND.lock().unwrap().randn(n as u128) as isize
@@ -297,13 +303,13 @@ impl Randomable for isize {
 
 impl Randomable for f32 {
     fn rand() -> f32 {
-        let range: i32 = 1 << 31 - 1;
-        let num = BASE_RAND.lock().unwrap().rand_range(10000, range as u128);
+        let range: u128 = (1 << 31) - 1;
+        let num = BASE_RAND.lock().unwrap().rand_range(10000, range);
         let divider = BASE_RAND.lock().unwrap().rand_range(2, 9);
         num as f32 / divider as f32
     }
     fn randn(n: f32) -> f32 {
-        let divider = 29 as u128;
+        let divider = 29u128;
         let range = n as u128 * divider;
 
         let num = BASE_RAND.lock().unwrap().randn(range);
@@ -314,19 +320,19 @@ impl Randomable for f32 {
             .lock()
             .unwrap()
             .rand_range(0u128, (max - min) as u128);
-        (num as f32 + min) / 1.16453434
+        (num as f32 + min) / 1.164_534_3
     }
 }
 
 impl Randomable for f64 {
     fn rand() -> f64 {
-        let range: i64 = 1 << 63 - 1;
-        let num = BASE_RAND.lock().unwrap().rand_range(10000, range as u128);
+        let range: u128 = (1 << 63) - 1;
+        let num = BASE_RAND.lock().unwrap().rand_range(10000, range);
         let divider = BASE_RAND.lock().unwrap().rand_range(2, 9);
         num as f64 / divider as f64
     }
     fn randn(n: f64) -> f64 {
-        let divider = 29 as u128;
+        let divider = 29u128;
         let range = n as u128 * divider;
 
         let num = BASE_RAND.lock().unwrap().randn(range);
