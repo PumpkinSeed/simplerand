@@ -145,6 +145,22 @@ impl Randomable for u64 {
     }
 }
 
+impl Randomable for u128 {
+    fn rand() -> u128 {
+        let range: u32 = 1 << 32 - 1;
+        BASE_RAND.lock().unwrap().rand_range(0, range as u128)
+    }
+    fn randn(n: u128) -> u128 {
+        BASE_RAND.lock().unwrap().randn(n)
+    }
+    fn rand_range(min: u128, max: u128) -> u128 {
+        BASE_RAND
+            .lock()
+            .unwrap()
+            .rand_range(min, max)
+    }
+}
+
 impl Randomable for usize {
     fn rand() -> usize {
         let range: u32 = 1 << 32 - 1;
@@ -222,6 +238,22 @@ impl Randomable for i64 {
             .lock()
             .unwrap()
             .rand_range(0u128, (max - min) as u128) as i64 + min
+    }
+}
+
+impl Randomable for i128 {
+    fn rand() -> i128 {
+        let range: u32 = 1 << 32 - 1;
+        BASE_RAND.lock().unwrap().rand_range(0, range as u128) as i128
+    }
+    fn randn(n: i128) -> i128 {
+        BASE_RAND.lock().unwrap().randn(n as u128) as i128
+    }
+    fn rand_range(min: i128, max: i128) -> i128 {
+        BASE_RAND
+            .lock()
+            .unwrap()
+            .rand_range(min as u128, max as u128) as i128
     }
 }
 
