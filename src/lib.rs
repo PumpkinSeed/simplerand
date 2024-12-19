@@ -887,4 +887,25 @@ mod tests {
         let result: u16 = random.rand_range(6, 123);
         assert_eq!(result, 93);
     }
+
+    #[test]
+    fn random_instance_predictable() {
+        let random = Random::new(1);
+        let result: u16 = random.rand_range(6, 123);
+        assert_eq!(result, 93);
+
+        let result: u16 = random.rand_range(6, 123);
+        assert_eq!(result, 75);
+    }
+
+    #[test]
+    fn random_instance_predictable_compare() {
+        let random = Random::new(1);
+        let result: u16 = random.rand_range(6, 123);
+        assert_eq!(result, 93);
+
+        let random = Random::new(1);
+        let result: u16 = random.rand_range(6, 123);
+        assert_eq!(result, 93);
+    }
 }
