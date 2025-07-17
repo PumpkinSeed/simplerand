@@ -29,7 +29,12 @@ impl Rng {
         self.seed = s;
     }
 
+    #[deprecated(since = "1.6.0", note = "use seed() instead")]
     pub fn get_seed(self) -> u128 {
+        self.seed
+    }
+
+    pub fn seed(self) -> u128 {
         self.seed
     }
 
