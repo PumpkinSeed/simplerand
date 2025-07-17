@@ -21,6 +21,10 @@ pub fn set_seed<T: Randomable>(s: u128) {
     T::set_seed(s)
 }
 
+pub fn seed<T: Randomable>() -> u128 {
+    T::seed()
+}
+
 #[derive(Debug, Copy, Clone)]
 pub struct Rng {
     base: base::Rng,
@@ -43,8 +47,13 @@ impl Rng {
         self.base.set_seed(s)
     }
 
+    #[deprecated(since = "1.6.0", note = "use seed() instead")]
     pub fn get_seed(self) -> u128 {
-        self.base.get_seed()
+        self.base.seed()
+    }
+
+    pub fn seed(self) -> u128 {
+        self.base.seed()
     }
 
     pub fn rand(&mut self) -> u128 {
@@ -104,6 +113,10 @@ pub trait Randomable: Sized {
 
     fn set_seed(s: u128) {
         BASE_RAND.lock().unwrap().set_seed(s);
+    }
+
+    fn seed() -> u128 {
+        BASE_RAND.lock().unwrap().seed()
     }
 }
 
